@@ -1,0 +1,36 @@
+version: "3"
+services:
+  neo4j:
+    image: neo4j:5.20.0
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+      - "127.0.0.1:7473:7473"
+    volumes:
+      - "./neo4j/data:/data"
+      - "./neo4j/conf:/conf"
+      - "./neo4j/plugins:/plugins"
+      - "./neo4j/backups:/backups"
+      - "./neo4j/import:/import"
+
+  backend:
+    build: ./backend
+    environment:
+      - FRONTEND_URL=${FRONTEND_HOST}:${FRONTEND_PORT}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    volumes:
+      - ./backend/:/app
+    ports:
+      - "127.0.0.1:${BACKEND_PORT}:8000"
+
+  frontend:
+    build: ./frontend
+    command: npm run serve
+    environment:
+      VUE_APP_BACKEND_URL: "${BACKEND_HOST}:${BACKEND_PORT}"
+    volumes:
+      - ./frontend/app/src:/app/src
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT}:3000"
